@@ -12,6 +12,6 @@
     "nodemon": "^2.0.20"
   },
   "scripts": {
-    "start": "nodemon run start"
+    "start": "npm start"
   }
 }
