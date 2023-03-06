@@ -13,6 +13,12 @@ const userModel = new mongoose.Schema({
     account:{
         type:String,
     },
+    sec:{
+        type:Number,
+    },
+    trial:{
+        type:Boolean,
+    },
     createdat:{
         type:Date,
         default:Date.now

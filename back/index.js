@@ -16,8 +16,8 @@ app.use("/user", userRoutes);
 //   .then(() => {
 //     console.log("db connected");
 //   });
-// mongoose.set("strictQuery", false);
-mongoose.connect("mongodb://admin:admin@ac-qex2e9m-shard-00-00.bchklen.mongodb.net:27017,ac-qex2e9m-shard-00-01.bchklen.mongodb.net:27017,ac-qex2e9m-shard-00-02.bchklen.mongodb.net:27017/?ssl=true&replicaSet=atlas-bj2w46-shard-0&authSource=admin&retryWrites=true&w=majority",{useNewUrlParser: true,useUnifiedTopology: true,})
+mongoose.set("strictQuery", false);
+mongoose.connect(process.env.MONGODB_URL,{useNewUrlParser: true,useUnifiedTopology: true,})
     .then((err)=>{console.log("connected")})
 
 
