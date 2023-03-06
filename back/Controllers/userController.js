@@ -3,19 +3,19 @@ const bcrypt = require("bcrypt");
 var nodemailer = require("nodemailer");
 const jwt_decode = require("jwt-decode");
 const User = require("../Models/userModel");
-const {transporter} = require('../emailConfig.js')
+const { transporter } = require('../emailConfig.js')
 const Stripe = require('stripe')
 const stripe = Stripe(process.env.STRIPE)
 const prices = [
-  {"name":"monthly", "id" : "price_1Mifa5SAVfQ4595dMBXb0oeT"},
-  {"name":"yearly", "id"  : "price_1MifbtSAVfQ4595dGKCVD467"},
+  { "name": "monthly", "id": "price_1Mifa5SAVfQ4595dMBXb0oeT" },
+  { "name": "yearly", "id": "price_1MifbtSAVfQ4595dGKCVD467" },
 ]
 exports.load = async (req, res) => {
   try {
-    const {user} = req.body
-    const data = await User.findOne({email:user})
-    if(data){
-    return res.status(200).json({ success: true, data });
+    const { user } = req.body
+    const data = await User.findOne({ email: user })
+    if (data) {
+      return res.status(200).json({ success: true, data });
     }
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -24,7 +24,7 @@ exports.load = async (req, res) => {
 
 exports.msg = async (req, res) => {
   try {
-    const {email,msg,name} = req.body
+    const { email, msg, name } = req.body
     if (!email) {
       return res
         .status(400)
@@ -51,7 +51,7 @@ exports.msg = async (req, res) => {
           <p>${msg}</p>
       `
     })
-    res.status(200).json({success:true,message:'Message sent'})
+    res.status(200).json({ success: true, message: 'Message sent' })
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
@@ -59,11 +59,11 @@ exports.msg = async (req, res) => {
 
 exports.expire = async (req, res) => {
   try {
-    const {user} = req.body
+    const { user } = req.body
     console.log(user)
-    const data = await User.findOneAndUpdate({email:user},{trial:false})
-    if(data){
-    return res.status(200).json({ success: true, data });
+    const data = await User.findOneAndUpdate({ email: user }, { trial: false })
+    if (data) {
+      return res.status(200).json({ success: true, data });
     }
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -85,8 +85,8 @@ exports.reset = async (req, res) => {
     const user = await User.findOne({ email: email });
     if (user) {
       const p = await bcrypt.hash(password, 12);
-      await User.findOneAndUpdate({email:email},{password:p})
-    return res.status(200).json({ success: true, message: "Password changed" });
+      await User.findOneAndUpdate({ email: email }, { password: p })
+      return res.status(200).json({ success: true, message: "Password changed" });
     }
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -150,7 +150,7 @@ exports.signup = async (req, res) => {
     const fuser = await User.findOne({ email: email })
     if (!fuser) {
       const p = await bcrypt.hash(password, 12);
-      const user = new User({ email, password: p, account: 'free',trial:true })
+      const user = new User({ email, password: p, account: 'free', trial: true })
       await user.save()
       let info = await transporter.sendMail({
         from: process.env.EMAIL,
@@ -199,58 +199,57 @@ exports.sendotp = async (req, res) => {
 }
 
 exports.payment = async (req, res) => {
-  const { price,plan,email } = req.body
-  try{
-  if (!email) {
-    return res
-      .status(201)
-      .json({ success: false, message: "Please Enter Email" });
+  const { price, plan, email } = req.body
+  try {
+    if (!email) {
+      return res
+        .status(201)
+        .json({ success: false, message: "Please Enter Email" });
+    }
+    if (!plan) {
+      return res
+        .status(201)
+        .json({ success: false, message: "Please Select a plan" });
+    }
+    const getId = () => {
+      let id
+      prices.map((item) => {
+        if (item.name === plan) {
+          id = item.id;
+        }
+      })
+      return (id)
+    }
+    const sec = Math.floor(100000 + Math.random() * 900000);
+    await User.findOneAndUpdate({ email: email }, { sec: sec })
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price: getId(),
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${process.env.FRONTEND_URL}?status=success&user=${email}&plan=${plan}&sec=${sec}`,
+      cancel_url: `${process.env.FRONTEND_URL}`,
+    });
+    res.send({ url: session.url });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message })
   }
-  if (!plan) {
-    return res
-      .status(201)
-      .json({ success: false, message: "Please Select a plan" });
-  }
-  const data = await User.findOne({email:email})
-  const getId = () => {
-    let id
-    prices.map((item) => {
-      if (item.name === plan) {
-        id = item.id;
-      }
-    })
-    return (id)
-  }
-  const sec = Math.floor(100000 + Math.random() * 900000);
-  await User.findOneAndUpdate({email:email},{sec:sec})
-  const session = await stripe.checkout.sessions.create({
-    line_items: [
-      {
-        price: getId(),
-        quantity: 1,
-      },
-    ],
-    mode: 'subscription',
-    success_url: `${process.env.FRONTEND_URL}?status=success&user=${email}&plan=${plan}&sec=${sec}`,
-    cancel_url: `${process.env.FRONTEND_URL}`,
-  });
-  res.send({ url: session.url });
-} catch (error) {
-  res.status(400).json({success:false,message:error.message})
-}
 };
 
-exports.update = async (req,res) => {
+exports.update = async (req, res) => {
   try {
-    const {email,plan,sec} = req.body
-    const data = await User.findOne({email:email})
-    if(data.sec==sec){
-      await User.findOneAndUpdate({email:email},{account:plan})
-      res.status(200).json({success:true,message:'Subscription added successfully'})
+    const { email, plan, sec } = req.body
+    const data = await User.findOne({ email: email })
+    if (data.sec == sec) {
+      await User.findOneAndUpdate({ email: email }, { account: plan })
+      res.status(200).json({ success: true, message: 'Subscription added successfully' })
     } else {
-      res.status(400).json({success:false,message:"Inavlid attempt"})
+      res.status(400).json({ success: false, message: "Inavlid attempt" })
     }
   } catch (error) {
-  res.status(400).json({success:false,message:error.message})
+    res.status(400).json({ success: false, message: error.message })
   }
 }
