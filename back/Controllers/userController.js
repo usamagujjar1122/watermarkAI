@@ -5,7 +5,7 @@ const jwt_decode = require("jwt-decode");
 const User = require("../Models/userModel");
 const {transporter} = require('../emailConfig.js')
 const Stripe = require('stripe')
-const stripe = Stripe('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')
+const stripe = Stripe(process.env.STRIPE_KEY)
 const prices = [
   {"name":"monthly", "id" : "price_1Mifa5SAVfQ4595dMBXb0oeT"},
   {"name":"yearly", "id"  : "price_1MifbtSAVfQ4595dGKCVD467"},
