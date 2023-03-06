@@ -13,6 +13,6 @@
     "stripe": "^11.13.0"
   },
   "scripts": {
-    "start": "nodemon run start"
+    "start": "node index.js"
   }
 }
