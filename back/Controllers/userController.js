@@ -42,8 +42,7 @@ exports.msg = async (req, res) => {
     }
     let info = await transporter.sendMail({
       from: process.env.EMAIL,
-      // to: "watermarkaiofficial@gmail.com",
-      to: 'itmasterusama@gmail.com',
+      to: "mgujjargamingm@gmail.com",
       subject: "WatermarkAI - New msg",
       html: `
           <h1>${name}</h1>
